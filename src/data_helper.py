@@ -1,5 +1,6 @@
 import random
 import re
+import numpy
 
 
 def readDataToLines(filename_lines, filename_conversations): 
@@ -41,9 +42,9 @@ def readConversationsToList(movie_conversations):
         # append the list of utterances to the list of conversations
         conversation_lists.append(temp);
 
-    # shuffle the list of conversations to get better training results
+    # shuffle the list of conversations one dimensionally (not the utterances)
     random.shuffle(conversation_lists)
-     
+
     return conversation_lists
 
 def readLinesToDict(movie_lines):
@@ -81,17 +82,14 @@ def cleanLines(lines_dict):
         line_text = line_text.lower()
 
         # remove punctuation
-        line_text = re.sub(r"he's", "he is", line_text)
-        line_text = re.sub(r"i'm", "i am", line_text)
-        line_text = re.sub(r"where's", "where is", line_text)
-        line_text = re.sub(r"that's", "that is", line_text)
-        line_text = re.sub(r"what's", "what is", line_text)
-        line_text = re.sub(r"\'ve", " have", line_text)
-        line_text = re.sub(r"she's", "she is", line_text)
-        line_text = re.sub(r"\'d", " would", line_text)
+        line_text = re.sub(r"'m", " am", line_text)
+        line_text = re.sub(r"'s", " is", line_text)
+        line_text = re.sub(r"'ve", " have", line_text)
+        line_text = re.sub(r"'d", " would", line_text)
         line_text = re.sub(r"won't", "will not", line_text)
-        line_text = re.sub(r"\'ll", " will", line_text)
-        line_text = re.sub(r"\'re", " are", line_text)
+        line_text = re.sub(r"weren't", "were not", line_text)
+        line_text = re.sub(r"'ll", " will", line_text)
+        line_text = re.sub(r"'re", " are", line_text)
         line_text = re.sub(r"can't", "can not", line_text)
 
         # remove every not word character
@@ -136,3 +134,120 @@ def splitConversationsToRequestAndResponse(conversations_list, lines_dict):
             responses.append(response)
             
     return requests, responses
+
+def getWord2Count(requests, responses):
+    #create empty dictionary
+    word2count = {}
+    
+    # iterate over the requests
+    for request in requests:
+        
+        # iterate over the words in the request
+        for word in request.split():
+            
+            # if the word is not in the dictionary
+            if word not in word2count:
+                
+                # add the word to the dictionary with the count 1
+                word2count[word] = 1
+                
+            # if the word is already in the dictionary
+            else:
+                
+                # increase the count by 1
+                word2count[word] += 1
+                
+    # iterate over the responses
+    for response in responses:
+        
+        # iterate over the words in the response
+        for word in response.split():
+            
+            # if the word is not in the dictionary
+            if word not in word2count:
+                
+                # add the word to the dictionary with the count 1
+                word2count[word] = 1
+                
+            # if the word is already in the dictionary
+            else:
+                
+                # increase the count by 1
+                word2count[word] += 1
+                
+    return word2count
+
+def encapsuleWithTokens(requests, responses, startseq, endseq):
+    # iterate over the requests
+    for i in range(len(requests)):
+        
+        # add the start token to the beginning of the request
+        requests[i] = startseq + " " + requests[i]
+        
+        # add the end token to the end of the request
+        requests[i] = requests[i] + " " + endseq
+        
+    # iterate over the responses
+    for i in range(len(responses)):
+        
+        # add the start token to the beginning of the response
+        responses[i] = startseq + " " + responses[i]
+        
+        # add the end token to the end of the response
+        responses[i] = responses[i] + " " + endseq
+        
+    return requests, responses
+
+def saveDictionary(dictionary, filename):
+    # save the dictionary with numpy
+    numpy.save(filename, dictionary)
+
+def translateToNumeric(list, dictionary, nulltoken):
+    # create empty list
+    numeric_list = []
+    
+    # iterate over the list
+    for item in list:
+        
+        # create empty string for the numeric item
+        numeric_item = []
+        
+        # iterate over the words in the item
+        for word in item.split():
+            
+            # if the word is in the dictionary
+            if word in dictionary:
+                
+                # append the word to the list
+                numeric_item.append(dictionary[word])
+                
+            # if the word is not in the dictionary
+            else:
+                
+                # append the unknown token to the list
+                numeric_item.append(dictionary[nulltoken])
+                
+        # convert the list back to a string and add to the list
+        numeric_list.append(numeric_item)
+        
+    return numeric_list
+    
+def removeLongSequences(inputEncoder, inputDecoder, max_words):
+    # create empty list for the input encoder
+    inputEncoderRemoved = []
+    # create empty list for the input decoder
+    inputDecoderRemoved = []
+    
+    # iterate over the input encoder
+    for i in range(len(inputEncoder)):
+        
+        # if the length of the input encoder and input decoder is less than the max words + 2 (for the start and end tokens)
+        if len(inputEncoder[i]) <= max_words + 2 and len(inputDecoder[i]) <= max_words + 2:
+            
+            # append the input encoder to the list
+            inputEncoderRemoved.append(inputEncoder[i])
+            
+            # append the input decoder to the list
+            inputDecoderRemoved.append(inputDecoder[i])
+            
+    return inputEncoderRemoved, inputDecoderRemoved
