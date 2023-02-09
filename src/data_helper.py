@@ -177,26 +177,16 @@ def getWord2Count(requests, responses):
                 
     return word2count
 
-def encapsuleWithTokens(requests, responses, startseq, endseq):
+def encapsuleWithTokens(input, startseq, endseq):
+    input_encapsuled = []
+
     # iterate over the requests
-    for i in range(len(requests)):
+    for i in range(len(input)):
         
-        # add the start token to the beginning of the request
-        requests[i] = startseq + " " + requests[i]
-        
-        # add the end token to the end of the request
-        requests[i] = requests[i] + " " + endseq
-        
-    # iterate over the responses
-    for i in range(len(responses)):
-        
-        # add the start token to the beginning of the response
-        responses[i] = startseq + " " + responses[i]
-        
-        # add the end token to the end of the response
-        responses[i] = responses[i] + " " + endseq
-        
-    return requests, responses
+        # add the start token to the beginning and the end token to the end of the request
+        input_encapsuled.append(startseq + " " + input[i] + " " + endseq)
+    
+    return input_encapsuled
 
 def saveDictionary(dictionary, filename):
     # save the dictionary with numpy
@@ -232,22 +222,37 @@ def translateToNumeric(list, dictionary, nulltoken):
         
     return numeric_list
     
-def removeLongSequences(inputEncoder, inputDecoder, max_words):
+def removeLongSequences(inputRequest, inputResponse, max_words):
     # create empty list for the input encoder
-    inputEncoderRemoved = []
+    inputRequestRemoved = []
     # create empty list for the input decoder
-    inputDecoderRemoved = []
+    inputResponseRemoved = []
     
-    # iterate over the input encoder
-    for i in range(len(inputEncoder)):
+    # iterate over the input
+    for i in range(len(inputRequest)):
         
         # if the length of the input encoder and input decoder is less than the max words + 2 (for the start and end tokens)
-        if len(inputEncoder[i]) <= max_words + 2 and len(inputDecoder[i]) <= max_words + 2:
+        if len(inputRequest[i]) <= max_words + 2 and len(inputResponse[i]) <= max_words + 2:
             
             # append the input encoder to the list
-            inputEncoderRemoved.append(inputEncoder[i])
+            inputRequestRemoved.append(inputRequest[i])
             
             # append the input decoder to the list
-            inputDecoderRemoved.append(inputDecoder[i])
+            inputResponseRemoved.append(inputResponse[i])
             
-    return inputEncoderRemoved, inputDecoderRemoved
+    return inputRequestRemoved, inputResponseRemoved
+
+def removeStartToken(input):
+    # create empty list
+    inputRemoved = []
+    
+    # iterate over the input
+    for item in input:
+        
+        # remove the start token from the beginning of the item
+        item = item[1:]
+        
+        # append the item to the list
+        inputRemoved.append(item)
+        
+    return inputRemoved
