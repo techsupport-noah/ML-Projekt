@@ -175,19 +175,18 @@ def get_maximum_sentence_length(inputEncoder, inputDecoder, test_inputEncoder, t
     max_length = max(max_length_request, max_length_response, max_length_test_request, max_length_test_response)
     return max_length
 
+
 def removeLongSequences(requests, responses, min_words, max_words):
     """
     iterates over requests/responses
         deletes every request-response pair that contains a sentence with length not in specified range
     """
-    #delete all quotes with a length !e [2;max_wordcount_in_sentence]
-    for i, request in enumerate(requests):
-        if len(request.split()) > max_words or len(request.split()) < min_words:
-            del(requests[i])
-            del(responses[i])
+    requests_short = []
+    responses_short = []
 
-    for i, response in enumerate(responses):
-        if len(response.split()) > max_words or len(response.split()) < min_words:
-            del(requests[i])
-            del(responses[i])
-    return requests, responses
+    for request, response in zip(requests, responses):
+        if len(response.split()) in range(min_words, max_words+1):
+            if len(request.split()) in range(min_words, max_words+1):
+                requests_short.append(request)
+                responses_short.append(response)
+    return requests_short, responses_short
