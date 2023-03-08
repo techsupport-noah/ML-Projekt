@@ -1,6 +1,7 @@
 import random
 import re
 import numpy
+import os
 
 
 def readDataToLines(filename_lines, filename_conversations): 
@@ -159,21 +160,13 @@ def removeStartToken(input):
     return input
 
 
-def get_maximum_sentence_length(inputEncoder, inputDecoder, test_inputEncoder, test_inputDecoder):
+def get_maximum_sentence_length(data1, data2):
     """
-    return maximum length of existing sentence
+    return maximum sentence length of a data set
     """
-    # get the maximum length of the requests
-    max_length_request = max([len(x) for x in inputEncoder])
-    # get the maximum length of the responses
-    max_length_response = max([len(x) for x in inputDecoder])
-    # get the maximum length of the test requests
-    max_length_test_request = max([len(x) for x in test_inputEncoder])
-    # get the maximum length of the test responses
-    max_length_test_response = max([len(x) for x in test_inputDecoder])
-    # get the maximum length of the requests, responses and test requests and responses
-    max_length = max(max_length_request, max_length_response, max_length_test_request, max_length_test_response)
-    return max_length
+    max_length1 = max([len(x) for x in data1])
+    max_length2 = max([len(x) for x in data2])
+    return max(max_length1, max_length2)
 
 
 def removeLongSequences(requests, responses, min_words, max_words):
@@ -190,3 +183,13 @@ def removeLongSequences(requests, responses, min_words, max_words):
                 requests_short.append(request)
                 responses_short.append(response)
     return requests_short, responses_short
+
+def save_model(model, path):
+    """
+    Funktion zum Speichern eines Modells 
+    in dem Ordner 'models'
+    """
+    if not os.path.exists('models'):
+        os.mkdir('models')
+
+    model.save('models/' + path)
