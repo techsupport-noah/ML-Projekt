@@ -88,9 +88,12 @@ Ausführung des interaktiven Chatbots
 print("##############################\n#   Chatbot   #\n##############################")
 
 # Eingabe des Benutzers
-user_input = input("You: ")
+user_input = ""
 
 while user_input != "quit":
+    # Eingabe des Benutzers
+    user_input = input("You: ")
+
     # Vorbereitung
     user_input = dh.cleanLine(user_input)
     user_input_list = [user_input]
