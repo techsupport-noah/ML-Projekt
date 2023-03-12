@@ -113,6 +113,7 @@ def splitConversationsToRequestAndResponse(conversations_lists, lines_dict):
     responses = []
     
     for conversation in conversations_lists:
+        print(conversation)
         for i in range(len(conversation) - 1):
             requests.append(lines_dict[conversation[i]])
             responses.append(lines_dict[conversation[i+1]])
@@ -181,10 +182,10 @@ def removeLongSequences(requests, responses, min_words, max_words):
     responses_short = []
 
     for request, response in zip(requests, responses):
-        if len(response.split()) in range(min_words, max_words+1):
-            if len(request.split()) in range(min_words, max_words+1):
-                requests_short.append(request)
-                responses_short.append(response)
+        if len(response.split()) in range(min_words, max_words+1) and len(request.split()) in range(min_words, max_words+1):
+            requests_short.append(request)
+            responses_short.append(response)
+
     return requests_short, responses_short
 
 def save_model(model, path):
