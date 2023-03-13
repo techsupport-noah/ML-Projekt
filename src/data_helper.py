@@ -113,7 +113,6 @@ def splitConversationsToRequestAndResponse(conversations_lists, lines_dict):
     responses = []
     
     for conversation in conversations_lists:
-        print(conversation)
         for i in range(len(conversation) - 1):
             requests.append(lines_dict[conversation[i]])
             responses.append(lines_dict[conversation[i+1]])
@@ -188,12 +187,4 @@ def removeLongSequences(requests, responses, min_words, max_words):
 
     return requests_short, responses_short
 
-def save_model(model, path):
-    """
-    Funktion zum Speichern eines Modells 
-    in dem Ordner 'models'
-    """
-    if not os.path.exists('models'):
-        os.mkdir('models')
 
-    model.save('models/' + path)
