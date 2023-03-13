@@ -13,17 +13,20 @@ from matplotlib import pyplot as plt
 import src.data_helper as dh
 import pickle
 
-
-# read vocab_size
-with open("models/vocab_size.txt", "r") as f:
-    VOCABULARY_SIZE = int(f.read())
-dense = Dense(VOCABULARY_SIZE, activation="softmax")
 # load tokenizer with pickle
-with open("models/tokenizer.pickle", "rb") as f:
+with open("models/tokenizer_lesswords.pickle", "rb") as f:
     tokenizer = pickle.load(f)
 
+VOCABULARY_SIZE = len(tokenizer.word_index) + 1
+print("Size: ", VOCABULARY_SIZE)
+# read vocab_size
+# with open("models/vocab_size.txt", "r") as f:
+    # VOCABULARY_SIZE = int(f.read())
+dense = Dense(VOCABULARY_SIZE, activation="softmax")
+
+
 outputDimension = 50
-lstm_units = 256
+lstm_units = 400
 
 # load training model
 embedding = tf.keras.layers.Embedding(VOCABULARY_SIZE, output_dim = outputDimension, trainable=True)
@@ -58,7 +61,7 @@ model = tf.keras.models.Model([inputEncoderTensor, inputDecoderTensor], outputDe
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # apply saved weights
-model.load_weights("models/weights.h5")
+model.load_weights("models/weights_lesswords.h5")
 
 # interference model
 # Encoder-Modell erstellen
@@ -105,13 +108,13 @@ while user_input != "quit":
     text = tokenizer.texts_to_sequences(user_input_list)
 
     # check if text only contains <OUT> tokens
-    if len(text[0]) == 1:
+    if text[0] == 1:
         print("Chatbot: Sorry, I don't understand this word/those words.", "\n==============================")
         continue
 
     # Länge 13 festlegen
     #text = pad_sequences(text, 13, padding="post")
-
+    text = pad_sequences(text, padding="post", maxlen=12, truncating="post")
     states = encoder_model.predict(text)
 
     empty_target_sequence = np.zeros((1, 1))
@@ -135,6 +138,7 @@ while user_input != "quit":
         # sampled_word_index = np.argsort(decoder_concatination_input[0, -1, :])[-2]
         
         if sampled_word_index == 0:
+            print("returned 0")
             sampled_word_index = np.argsort(decoder_concatination_input[0, -1, :])[-2]
 
         # Wort über invertiertes Vokabular finden
