@@ -117,7 +117,7 @@ while userInput != "exit":
     
     # pad input to same length as in training
     text = pad_sequences(text, padding="post", maxlen=max_sentence_length, truncating="post", value=padding_index)
-    states = encoder_model.predict(text)
+    states = encoder_model.predict(text, verbose=0)
 
     empty_target_sequence = np.zeros((1, 1))
     empty_target_sequence[0,0] = tokenizer.word_index["<S>"] # start answer with start token
