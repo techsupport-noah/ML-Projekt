@@ -13,15 +13,34 @@ from matplotlib import pyplot as plt
 import src.data_helper as dh
 import pickle
 
+print("(1) General/Base Model\n")
+print("(2) Romance Model\n")
+print("(3) Action Model\n")
+
+
+#Eingabe Genre
+genreInput = input("Choose Genre (by number): ")
+
+if(genreInput == "1"):
+    genre = "all"
+if(genreInput == "2"):
+    genre = "romance"
+if(genreInput == "3"):
+    genre = "action"
+#if genreInput was not 1, 2 or 3, the program will exit
+if(genreInput != "1" and genreInput != "2" and genreInput != "3"):
+    print("Please choose a valid number")
+    exit()
+
 # load tokenizer with pickle
-with open("models/tokenizer_lesswords.pickle", "rb") as f:
+with open(f"models/tokenizer_{genre}.pickle", "rb") as f:
     tokenizer = pickle.load(f)
 
 VOCABULARY_SIZE = len(tokenizer.word_index) + 1
-print("Size: ", VOCABULARY_SIZE)
+# print("Size: ", VOCABULARY_SIZE)
 
 padding_index = tokenizer.word_index["<P>"]
-print("Padding index: ", padding_index)
+# print("Padding index: ", padding_index)
 
 # read vocab_size
 # with open("models/vocab_size.txt", "r") as f:
@@ -55,7 +74,7 @@ model = tf.keras.models.Model([inputEncoderTensor, inputDecoderTensor], outputDe
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # apply saved weights
-model.load_weights("models/weights_lesswords.h5")
+model.load_weights(f"models/weights_{genre}.h5")
 
 # create interference model
 
@@ -72,14 +91,14 @@ decoder_model = Model([inputDecoderTensor] + decoder_state_inputs, [decoder_oupu
 
 
 
-print("############################\n#   Chatbot   #\n############################")
+print("\n   Chatbot-Interactive Input   \n")
 
 userInput = ""
 
 while userInput != "exit":
 
     # Eingabe des Benutzers
-    userInput = input("User: ")
+    userInput = input("You: ")
 
     # skip empty input
     if userInput == "": 
@@ -93,7 +112,7 @@ while userInput != "exit":
 
     # check if only unknown input was given
     if all(word == 1 for word in text):
-        print("Chatbot: Sorry, I don't understand this.", "\n============================")
+        print("Chatbot: Sorry, I don't understand this.", "\n")
         continue
     
     # pad input to same length as in training
@@ -108,7 +127,7 @@ while userInput != "exit":
 
     while not stop_condition:
 
-        decoder_ouputs, h, c = decoder_model.predict([empty_target_sequence] + states)
+        decoder_ouputs, h, c = decoder_model.predict([empty_target_sequence] + states, verbose=0)
 
         decoder_concatination_input = decoderDense(decoder_ouputs)
 
@@ -116,7 +135,7 @@ while userInput != "exit":
         sampled_word_index = np.argmax(decoder_concatination_input[0, -1, :])
         
         if sampled_word_index == 0:
-            print("returned 0")
+            stop_condition = True
             sampled_word_index = np.argsort(decoder_concatination_input[0, -1, :])[-2]
 
         # find associated word
@@ -133,4 +152,4 @@ while userInput != "exit":
         empty_target_sequence[0, 0] = sampled_word_index
         states = [h, c]
 
-    print("Chatbot: ", answer, "\n==============================")
+    print("Chatbot: ", answer, "\n")
