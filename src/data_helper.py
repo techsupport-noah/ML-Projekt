@@ -4,7 +4,7 @@ import numpy
 import os
 
 
-def readDataToLines(filename_lines, filename_conversations): 
+def readDataToLines(filename_lines, filename_conversations, filename_moviedata): 
     """
     1.read files into memory
     2.splits files at \n (linebreak character) 
@@ -12,11 +12,13 @@ def readDataToLines(filename_lines, filename_conversations):
     """
     movie_lines = open(filename_lines, encoding="utf-8", errors="ignore").read()
     movie_conversations = open(filename_conversations, encoding="utf-8", errors="ignore").read()
+    movie_data = open(filename_moviedata, encoding="utf-8", errors="ignore").read()
 
     movie_lines = movie_lines.split("\n")
     movie_conversations = movie_conversations.split("\n")
+    movie_data = movie_data.split("\n")
     
-    return movie_lines, movie_conversations
+    return movie_lines, movie_conversations, movie_data
 
 
 def readConversationsToList(movie_conversations): 
@@ -59,6 +61,62 @@ def readLinesToDict(movie_lines):
             line_text = temp[4]
             lines_dict[line_id] = line_text
     return lines_dict
+
+
+def readConversationsToListDependingGenre(movie_conversations, id2genre): 
+    """
+    iterate over the list of conversations
+        get the list of the utterances that make the conversation (last element of the split)
+        remove the square brackets
+        remove the single quotes
+        remove the commas
+        split the string into a list of utterances
+        
+        create dict with all genres as keys
+        get genres of the related movie
+        append list of utterances to those genres in dict
+    """
+    conversations_per_genre = {}
+    for conversation in movie_conversations:
+        temp = conversation.split(" +++$+++ ")
+        if len(temp) == 4:
+            # extract conversation list
+            conv = temp[-1][1:-1]
+            conv = conv.replace("'","")
+            conv = conv.replace(",","")
+            conv = conv.split()
+            
+            # create dict with list of all conversations per genre
+            movie_id = temp[-2]
+            genres = id2genre[movie_id]
+            for g in genres:
+                if g in conversations_per_genre.keys():
+                    conversations_per_genre[g].append(conv)
+                else:
+                    conversations_per_genre[g] = [conv]
+
+    return conversations_per_genre
+
+
+def readMoviedataToDict(movie_data):
+    """
+    iterates over the movie data lines:
+        splits lines into its components
+        if line has correct number of components:
+            extract movie_id and genre
+            add line to a dict
+
+    """
+    lines_dict = {}
+    for line in movie_data:
+        temp = line.split(" +++$+++ ")
+        if len(temp) == 6:
+            movie_id = temp[0]
+            genres = temp[-1][2:-2]
+            genres = genres.split("', '")
+            lines_dict[movie_id] = list(genres)
+    return lines_dict
+
 
 def cleanLine(line):
     # convert to lowercase
